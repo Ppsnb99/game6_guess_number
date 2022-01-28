@@ -1,19 +1,24 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import 'game.dart';
 
 void main() {
-  runApp(const MyApp());
+  const app = MyApp();
+  runApp(app);
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  // callback method
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.indigo,  //title
+        primarySwatch: Colors.purple,
       ),
       home: HomePage(),
     );
@@ -21,219 +26,180 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatelessWidget {
-  HomePage({Key? key}) : super(key: key);
-
   final _controller = TextEditingController();
-  var game = Game();
+  late Game _game;
+
+  HomePage({Key? key}) : super(key: key) {
+    _game = Game(maxRandom: 100);
+  }
+
+  void _showOkDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(  //กำหนดโครงสร้างหน้าต่าง
+    var showSeven = true;
+
+    return Scaffold(
       appBar: AppBar(
         title: const Text('GUESS THE NUMBER'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Container(  //พื้นหลังหน้าวินเจด
-          // เทียบเท่ากับ <div> ของ HTML
-          decoration: BoxDecoration(  //กำหนดหน้าต่างให้มนๆ โค้งๆ
-              borderRadius: BorderRadius.circular(10),  //กำหนดขอบ
-              color: Colors.lightBlueAccent.shade100,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.deepPurpleAccent.withOpacity(0.6),
-                  offset: const Offset(10.0, 10.0),
-                  blurRadius: 2.0,
-                  spreadRadius: 2.0,
-                ),
-              ]),
-
-          alignment: Alignment.center,  //หน้าต่างอยู่ตรงกลาง
+        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.purple.shade50,
+            borderRadius: BorderRadius.circular(16.0),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.purple.shade100,
+                offset: Offset(5.0, 5.0),
+                spreadRadius: 2.0,
+                blurRadius: 5.0,
+              )
+            ],
+          ),
+          alignment: Alignment.center,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, //ปรับตำแหน่ง
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              /* Row(
+              /*Row(
                 children: [
                   Container(width: 50.0, height: 50.0, color: Colors.blue),
                   Expanded(
-                      child: Container(
-                    width: 50.0,
-                    height: 50.0,
-                    //color: Colors.pink,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Text('FLUTTER', textAlign: TextAlign.end,),
-                        ),
-                        alignment: Alignment.centerRight,
-                  )),
+                    child: Container(
+                      width: 30.0,
+                      height: 50.0,
+                      //color: Colors.pink,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text('FLUTTER', textAlign: TextAlign.end,),
+                      ),
+                      alignment: Alignment.centerRight,
+                    ),
+                  ),
+                  //SizedBox(width: 10.0),
                 ],
               ),*/
-              //SizedBox(height: 16.0,),
+              /*Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Expanded(child: Container(color: Colors.green, width: 100.0, height: 50.0)),
+                  Container(color: Colors.red, width: 50.0, height: 50.0),
+                ],
+              ),*/
               Expanded(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,  //ตำแหน่งไอคอนและข้อความ
-                  //crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.asset('assets/images/guess_logo.png', width: 200),
+                    Image.asset('assets/images/guess_logo.png', width: 90.0),
                     SizedBox(width: 8.0),
                     Column(
                       mainAxisSize: MainAxisSize.min,
-                      //crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text('GUESS',
+                            style: TextStyle(
+                                fontSize: 36.0, color: Colors.purple.shade200)),
                         Text(
-                          'GUESS ',
+                          'THE NUMBER',
                           style: TextStyle(
-                            fontSize: 50.0,
-                            color: Colors.blueAccent.withOpacity(0.6), //กำหนดความทึบ
+                            fontSize: 18.0,
+                            color: Colors.purple.shade600,
+                            //fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          '   THE NUMBER',
-                          style: TextStyle(
-                            fontSize: 30.0,
-                            color: Colors.blueAccent.withOpacity(1),
-                          ),
-                        )
                       ],
-                    )
+                    ),
                   ],
                 ),
               ),
-              /*SizedBox(
-                height: 10.0,
-              ),*/
-              //Expanded(child: Container()),//การยึดแท็บบน-ล่าง
               Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: TextField(
-                  textAlign: TextAlign.center,
-                  controller: _controller,
-                  decoration: InputDecoration( //ปุ่มรับเข้า
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.7),
-                    border: OutlineInputBorder(), //ทำขอบ
-                    hintText: 'ทายเลขตั้งแต่ 1 ถึง 100',
-                    hintStyle: TextStyle(
-                      fontSize: 20.0,
-                    ),
-                  ),
-                ),
+                padding: const EdgeInsets.all(16.0),
+                child: Text('HELLO'),
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 1; i <= 3; i++) buildButton(num: i),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 4; i <= 6; i++) buildButton(num: i),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var i = 7; i <= 9; i++) buildButton(num: i),
+                ],
+              ),
+              buildButton(num: 0),
               Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: ElevatedButton(
+                  child: Text('GUESS'),
                   onPressed: () {
-                    //การทำงานเมื่อกดปุ่มรัน
-                    String? input = _controller.text;
-                    int? guess = int.tryParse(input);
+                    var input = _controller.text;
+                    var guess = int.tryParse(input);
+
                     if (guess == null) {
-                      if (input.isNotEmpty) {
-                        showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text('ERROR'),
-                                content: Text('กรอกข้อมูลไม่ถูกต้อง ให้กรอกเฉพาะตัวเลขเท่านั้น'),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text('OK')
-                                  )
-                                ],
-                              );
-                            });
-                      } else {
-                        showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text('ERROR'),
-                                content: Text('กรุณากรอกข้อมูล'),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop();
-                                      },
-                                      child: Text('OK')
-                                  )
-                                ],
-                              );
-                            });
-                      }
+                      _showOkDialog(context, 'ERROR',
+                          'กรอกข้อมูลไม่ถูกต้อง ให้กรอกเฉพาะตัวเลขเท่านั้น');
+                      return;
                     }
-                    var result = game.doGuess(guess!);
-                    print(result);
-                    if (result == 1) {
-                      showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('RESULT'),
-                              content: Text(input + ' is TOO HIGH!, try again'),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('OK')
-                                )
-                              ],
-                            );
-                          });
-                    } else if (result == -1) {
-                      showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('RESULT'),
-                              content: Text(input + ' is TOO LOW!, try again'),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('OK')
-                                )
-                              ],
-                            );
-                          });
+
+                    late String message;
+                    var guessResult = _game.doGuess(guess);
+                    if (guessResult > 0) {
+                      message = '$guess มากเกินไป กรุณาลองใหม่';
+                    } else if (guessResult < 0) {
+                      message = '$guess น้อยเกินไป กรุณาลองใหม่';
                     } else {
-                      showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('RESULT'),
-                              content: Text(input +
-                                  ' is CORRECT!\n Total guesses: ${game.guessCount}'),
-                              actions: [
-                                TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('OK')
-                                )
-                              ],
-                            );
-                          });
+                      message =
+                      '$guess ถูกต้องครับ 🎉\n\nคุณทายทั้งหมด ${_game.guessCount} ครั้ง';
                     }
+
+                    _showOkDialog(context, 'RESULT', message);
                   },
-                  child: Text('GUESS',
-                    style: TextStyle(fontSize: 20.0),
-                  ),
                 ),
               ),
-              //SizedBox(height: 16.0,),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildButton({int? num}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: OutlinedButton(
+          onPressed: () {
+            print('You pressed $num');
+          },
+          child: Text('$num')),
     );
   }
 }
